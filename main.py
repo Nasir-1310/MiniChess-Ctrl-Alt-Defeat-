@@ -355,45 +355,254 @@ def drawUIStatus(WINDOW, GAME_STATE):
         drawTextMessage(WINDOW, turn, [100, 525], pygame.Color('olivedrab4'))
 
 
-################################
+########### let's build main function  ########
 
 
 # Main function to run the game loop
 def main():
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
-    pygame.display.set_caption("Chess Game")
-    clock = pygame.time.Clock()
-    game_state = GameState()
-    valid_moves = game_state.getValidMoves()
-    selected_square = ()  # Keep track of the last square clicked
-    load_images()  # Load images once
+    # Initialize pygame
+    pygame.init()
 
+    # Variables
+    pieceClickCount = 0
+    selectedSq = []
+    animate = False
+    playerOne = True  # human -> TRUE, AI -> FALSE (white)
+    playerTwo = True  # -Do- (black)
+    lastMove = []
+    humanPlayer = True
+    global MOVE_COUNT, MAX_MOVES, BLACK_AI, BLACK_MAN, WHITE_AI, WHITE_MAN, GAME_STARTED
+
+    # Set Display
+    WINDOW = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+    pygame.display.set_caption('♟️ Mini Chess ♟️')
+    clock = pygame.time.Clock()
+
+    # Set GameState
+    GAME_STATE = engine.GameState()
+    validMoves = GAME_STATE.getValidMoves()
+    moveMade = False
+    gameOver = False
+
+    # Define the board area rect
+    board_rect = pygame.Rect(0, 0, DIMENSION_X * SQ_SIZE, DIMENSION_Y * SQ_SIZE)
+
+    # Button Rects
+    play_button_rect = pygame.Rect(PLAY_BUTTON_POS[0], PLAY_BUTTON_POS[1], BUTTON_WIDTH, BUTTON_HEIGHT)
+    restart_button_rect = pygame.Rect(RESTART_BUTTON_POS[0], RESTART_BUTTON_POS[1], BUTTON_WIDTH, BUTTON_HEIGHT)
+    black_human_rect = pygame.Rect(TOGGLE_BUTTON_1_POS[0], TOGGLE_BUTTON_1_POS[1], BUTTON_WIDTH + 50, BUTTON_HEIGHT)
+    black_ai_rect = pygame.Rect(TOGGLE_BUTTON_2_POS[0], TOGGLE_BUTTON_2_POS[1], BUTTON_WIDTH, BUTTON_HEIGHT)
+
+    white_human_rect = pygame.Rect(TOGGLE_BUTTON_3_POS[0], TOGGLE_BUTTON_3_POS[1], BUTTON_WIDTH + 50, BUTTON_HEIGHT)
+    white_ai_rect = pygame.Rect(TOGGLE_BUTTON_4_POS[0], TOGGLE_BUTTON_4_POS[1], BUTTON_WIDTH, BUTTON_HEIGHT)
+
+    # The main game loop
     running = True
     while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                location = pygame.mouse.get_pos()  # (x, y) location of mouse
-                col = location[0] // SQ_SIZE
-                row = location[1] // SQ_SIZE
-                if selected_square == (row, col):  # Deselect if clicked twice
-                    selected_square = ()
-                else:
-                    selected_square = (row, col)
-                    valid_moves = game_state.getValidMoves()  # Update valid moves after selection
 
-        # Draw board and pieces
-        draw_board(screen, game_state)
-        highlight_squares(screen, game_state, valid_moves, selected_square)
-
-        # Update display and tick clock
-        pygame.display.flip()
+        # Render game elements
+        WINDOW.fill(BACKGROUND)
         clock.tick(FPS)
+        restart = False
 
-    pygame.quit()
-    sys.exit()
+        if GAME_STARTED:
+            humanPlayer = (GAME_STATE.whiteToMove and playerOne) or (
+                not GAME_STATE.whiteToMove and playerTwo)
+
+        # Event handling
+        for event in pygame.event.get():
+
+            # Quit game
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+
+            # Handle piece movement
+            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+                if not gameOver:
+                    # Click squares to move the piece
+                    if board_rect.collidepoint(event.pos) and GAME_STARTED:
+                        if humanPlayer:
+                            y_coord = event.pos[0] // SQ_SIZE
+                            x_coord = event.pos[1] // SQ_SIZE
+
+                            # Reset if the same square is clicked twice
+                            if selectedSq == (x_coord, y_coord):
+                                selectedSq = []
+                                pieceClickCount = 0
+                            else:
+                                selectedSq.append((x_coord, y_coord))
+                                pieceClickCount += 1
+
+                            # When the piece is to be moved
+                            if pieceClickCount == 2:
+                                move = engine.Move(selectedSq[0], selectedSq[1], GAME_STATE.board)
+                                # print(move.getChessNotation())
+
+                                # Check if the move is valid
+                                for i in range(len(validMoves)):
+                                    if move == validMoves[i]:
+                                        GAME_STATE.makeMove(move)
+                                        moveMade = True
+                                        animate = True
+                                        lastMove = selectedSq
+                                        MOVE_COUNT += 1
+
+                                        # Play move sound effect
+                                        sound_effects = loadSoundEffects()
+                                        sound_effects['move'].play()
+
+                                        pieceClickCount = 0
+                                        selectedSq = []
+
+                                if not moveMade:
+                                    pieceClickCount = 1
+                                    selectedSq = selectedSq[1:]
+
+    def reset_game():
+        """Helper function to reset the game state and other variables."""
+        nonlocal GAME_STATE, validMoves, selectedSq, pieceClickCount, moveMade
+        nonlocal animate, restart, gameOver, MOVE_COUNT, GAME_STARTED
+        GAME_STATE = engine.GameState()
+        validMoves = GAME_STATE.getValidMoves()
+        selectedSq = []
+        pieceClickCount = 0
+        moveMade = False
+        animate = False
+        restart = True
+        gameOver = False
+        MOVE_COUNT = 0
+        GAME_STARTED = False
+
+    # Opponent selection
+    if black_ai_rect.collidepoint(event.pos):
+        BLACK_AI = True
+        BLACK_MAN = False
+        playerTwo = False
+        reset_game()
+
+    if black_human_rect.collidepoint(event.pos):
+        BLACK_MAN = True
+        BLACK_AI = False
+        playerTwo = True
+        reset_game()
+
+    if white_ai_rect.collidepoint(event.pos):
+        WHITE_AI = True
+        WHITE_MAN = False
+        playerOne = False
+        reset_game()
+
+    if white_human_rect.collidepoint(event.pos):
+        WHITE_MAN = True
+        WHITE_AI = False
+        playerOne = True
+        reset_game()
+
+    if play_button_rect.collidepoint(event.pos):
+        if (BLACK_AI or BLACK_MAN) and (WHITE_AI or WHITE_MAN):
+            GAME_STARTED = True
+
+    if restart_button_rect.collidepoint(event.pos):
+        reset_game()
+        humanPlayer = True
+        BLACK_AI = BLACK_MAN = WHITE_AI = WHITE_MAN = GAME_STARTED = False
+
+    # Handle undo moves
+    elif event.type == pygame.KEYDOWN:
+        if event.key == pygame.K_z:  # Undo when Z is pressed
+            # Check if there are at least two moves to undo
+            if len(GAME_STATE.moveLog) >= 2:
+                # Undo the last two moves (one AI move and one human move)
+                move = GAME_STATE.undoMove(2)
+                moveMade = True
+                animate = False
+                sound_effects = loadSoundEffects()
+                sound_effects['undo'].play()
+                lastMove = [(move.startRow, move.startCol), (move.endRow, move.endCol)]
+            else:
+                print("Not enough moves to undo.")
 
 
-if __name__ == "__main__":
-    main()
+def handle_ai_move():
+    """Handles the AI's move in the game."""
+    nonlocal moveMade, animate, MOVE_COUNT, lastMove
+
+    aiMove = ai.findBestMove(GAME_STATE, validMoves)
+    if aiMove is None:
+        aiMove = validMoves[0]
+        print("GAME OVER")
+
+    GAME_STATE.makeMove(aiMove)
+    moveMade = True
+    animate = True
+    MOVE_COUNT += 1
+
+    # Playing piece moving sound
+    sound_effects = loadSoundEffects()
+    sound_effects['move'].play()
+
+    # Track last move for animation
+    lastMove = [(aiMove.startRow, aiMove.startCol), (aiMove.endRow, aiMove.endCol)]
+
+
+def update_valid_moves():
+    """Updates the valid moves after a move is made and animates if necessary."""
+    nonlocal moveMade, animate, validMoves
+
+    if animate:
+        animateMove(GAME_STATE.moveLog[-1], WINDOW, GAME_STATE.board, clock)
+    validMoves = GAME_STATE.getValidMoves()
+    moveMade = False
+    animate = False
+
+
+def check_game_over():
+    """Checks for checkmate or stalemate and updates the display accordingly."""
+    nonlocal gameOver
+
+    if GAME_STATE.checkMate:
+        gameOver = True
+        if GAME_STATE.whiteToMove:
+            drawGameOverText(WINDOW, 'Black wins by Checkmate', 'Red')
+        else:
+            drawGameOverText(WINDOW, 'White wins by Checkmate', 'Green')
+        # sound_effect = loadSoundEffects()
+        # sound_effect['checkmate'].play()
+
+    if GAME_STATE.staleMate:
+        gameOver = True
+        drawGameOverText(WINDOW, 'Stalemate', 'Red')
+
+
+# Main game loop
+running = True
+while running:
+    WINDOW.fill(BACKGROUND)
+    clock.tick(FPS)
+    restart = False
+
+    if GAME_STARTED:
+        humanPlayer = (GAME_STATE.whiteToMove and playerOne) or (not GAME_STATE.whiteToMove and playerTwo)
+
+    # Event handling
+    for event in pygame.event.get():
+        # handle quit, clicks, and other events
+        ...
+
+    # AI Move
+    if GAME_STARTED and not humanPlayer and not gameOver:
+        handle_ai_move()
+
+    # Update valid moves if a move was made
+    if moveMade:
+        update_valid_moves()
+
+    # Set Game State and draw
+    drawGameState(WINDOW, GAME_STATE, validMoves, selectedSq, lastMove, restart)
+
+    # Game over handling
+    check_game_over()
+
+    # Update the window state
+    pygame.display.update()
