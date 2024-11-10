@@ -51,7 +51,7 @@ blackPawnGoodPositionsOnBoard=[
                         [5, 5, 5, 5, 5]
                         ];
 
-piecePositionalScore={
+piecePositionalScores={
     "N":knightGoodPositionsOnBoard,
     "B":bishopGoodPositionsOnBoard,
     "Q":queenGoodPositionsOnBoard,
