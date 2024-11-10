@@ -11,7 +11,7 @@ pygame.init()
 
 # Game Setup
 WINDOW_WIDTH = 300
-WINDOW_HEIGHT = 550
+WINDOW_HEIGHT = 560
 SQ_SIZE = 60
 DIMENSION_X = 5
 DIMENSION_Y = 6
@@ -19,17 +19,19 @@ FPS = 60
 
 # BG color
 BACKGROUND = pygame.Color('azure')
-BOARD_COLOR_A = (239, 239, 239)
-BOARD_COLOR_B = (149, 141, 148)
+BOARD_COLOR_A = (240, 217, 181)  # Light color for light squares
+BOARD_COLOR_B = (181, 136, 99)   # Dark color for dark squares
 HOVER_COLOR = (210, 140, 80)
+TEXT_COLOR = pygame.Color('darkslateblue')
+
 
 # Button colors
-PLAY_BUTTON_COLOR = pygame.Color('green4')
-PLAY_BUTTON_HOEVR_COLOR = pygame.Color('chartreuse1')
-RESTART_BUTTON_COLOR = pygame.Color('orangered')
-RESTART_BUTTON_HOVER_COLOR = pygame.Color('brown4')
-BUTTON_TEXT_COLOR = pygame.Color('white')
-TOGGLE_BUTTON_COLOR = pygame.Color('purple')
+PLAY_BUTTON_COLOR = pygame.Color('mediumseagreen')
+PLAY_BUTTON_HOVER_COLOR = pygame.Color('limegreen')
+RESTART_BUTTON_COLOR = pygame.Color('tomato')
+RESTART_BUTTON_HOVER_COLOR = pygame.Color('firebrick')
+BUTTON_TEXT_COLOR = pygame.Color('DeepSkyBlue')
+TOGGLE_BUTTON_COLOR = pygame.Color('mediumpurple')
 
 # Button dimensions and positions
 BUTTON_WIDTH = 40
@@ -42,7 +44,7 @@ TOGGLE_BUTTON_3_POS = (150, 430)
 TOGGLE_BUTTON_4_POS = (100, 430)
 
 # Define button attributes
-BUTTON_FONT = pygame.font.SysFont('Arial', 20, bold=True)
+BUTTON_FONT = pygame.font.SysFont('Comic Sans MS', 20, bold=True)
 BUTTON_RADIUS = 8
 
 # MOVES
@@ -54,14 +56,12 @@ WHITE_AI = False
 WHITE_MAN = False
 GAME_STARTED = False
 
-
-
 #### All functions ##########
 
 def loadSoundEffects():
 
     effects = {}
-    move_piece = pygame.mixer.Sound('./audios/move_pieces.wav')
+    move_piece = pygame.mixer.Sound('./audios/move_Pieces.mp3')
     undo_move = pygame.mixer.Sound('./audios/undo_moves.wav')
     checkmate = pygame.mixer.Sound('./audios/checkmate_sound.wav')
     effects['move'] = move_piece
@@ -101,7 +101,7 @@ def highlightSquare(WINDOW, GAME_STATE, validMoves, sqSelected, lastMove, restar
             # transparency value (0 - transparent, 255 - solid)
             surface.set_alpha(100)
             surface.fill(pygame.Color('lightblue'))
-            WINDOW.blit(surface, (col*SQ_SIZE, row*SQ_SIZE))
+            WINDOW.blit(surface, (col * SQ_SIZE, row * SQ_SIZE))
 
             # highlight for possible moves
             surface.fill(pygame.Color('gold'))
@@ -109,7 +109,7 @@ def highlightSquare(WINDOW, GAME_STATE, validMoves, sqSelected, lastMove, restar
             for move in validMoves:
                 if move.startRow == row and move.startCol == col:
                     WINDOW.blit(
-                        surface, (SQ_SIZE*move.endCol, SQ_SIZE*move.endRow))
+                        surface, (SQ_SIZE * move.endCol, SQ_SIZE * move.endRow))
 
     # Highlight squares for checkmate
     if GAME_STATE.inCheck():
@@ -118,7 +118,7 @@ def highlightSquare(WINDOW, GAME_STATE, validMoves, sqSelected, lastMove, restar
 
         surface = pygame.Surface((SQ_SIZE, SQ_SIZE))
         surface.fill(pygame.Color('orange'))
-        WINDOW.blit(surface, (king_col*SQ_SIZE, king_row*SQ_SIZE))
+        WINDOW.blit(surface, (king_col * SQ_SIZE, king_row * SQ_SIZE))
 
     # Highlight the last moved piece
     if len(lastMove) != 0:
@@ -129,18 +129,18 @@ def highlightSquare(WINDOW, GAME_STATE, validMoves, sqSelected, lastMove, restar
             surface = pygame.Surface((SQ_SIZE, SQ_SIZE))
             surface.set_alpha(100)
             surface.fill(pygame.Color('lightgreen'))
-            WINDOW.blit(surface, (startCol*SQ_SIZE, startRow*SQ_SIZE))
+            WINDOW.blit(surface, (startCol * SQ_SIZE, startRow * SQ_SIZE))
 
         if endRow is not None and endCol is not None:
             surface = pygame.Surface((SQ_SIZE, SQ_SIZE))
             surface.set_alpha(100)
             surface.fill(pygame.Color('lightgreen'))
-            WINDOW.blit(surface, (endCol*SQ_SIZE, endRow*SQ_SIZE))
+            WINDOW.blit(surface, (endCol * SQ_SIZE, endRow * SQ_SIZE))
+
 
 def drawGameState(WINDOW, GAME_STATE, validMoves, sqSelected, lastMove, restart):
     drawBoard(WINDOW)
-    highlightSquare(WINDOW, GAME_STATE, validMoves,
-                    sqSelected, lastMove, restart)
+    highlightSquare(WINDOW, GAME_STATE, validMoves, sqSelected, lastMove, restart)
     drawPieces(WINDOW, GAME_STATE.board)
     drawButtons(WINDOW, GAME_STATE)
 
@@ -172,16 +172,16 @@ def drawBoard(WINDOW):
 
             # Render rank value in the left cells
             if col == 0:
-                font = pygame.font.SysFont('Comic Sans', 15)
-                surface = font.render(str(rank), True, 'darkblue')
+                font = pygame.font.SysFont('Comic Sans MS', 15)
+                surface = font.render(str(rank), True, TEXT_COLOR)
                 WINDOW.blit(surface, (5, row * SQ_SIZE + 5))
 
             # Render file value in the bottom row
             if row == DIMENSION_Y - 1:
-                font = pygame.font.SysFont('Comic Sans', 15)
-                surface = font.render(file_, True, 'darkblue')
-                WINDOW.blit(surface, (col * SQ_SIZE + 53,
-                            (DIMENSION_Y-1) * SQ_SIZE + 45))
+                font = pygame.font.SysFont('Comic Sans MS', 15)
+                surface = font.render(file_, True, TEXT_COLOR)
+                WINDOW.blit(surface, (col * SQ_SIZE + 53, (DIMENSION_Y - 1) * SQ_SIZE + 45))
+
 
 def drawPieces(WINDOW, Board):
     IMAGES = loadImages()
@@ -319,42 +319,40 @@ def makeButton(WINDOW, POSITION, WIDTH, HEIGHT, TEXT, BTN_COLOR, BTN_RADIUS=0):
     pygame.draw.rect(WINDOW, BTN_COLOR, toggle_button_rect, border_radius=BTN_RADIUS)
 
     # Draw text on the button
-    font = pygame.font.Font(None, 24)
-    toggle_text = font.render(TEXT, True, pygame.Color('white'))
+    font = pygame.font.SysFont('Comic Sans MS', 18, bold=True)
+    toggle_text = font.render(TEXT, True, pygame.Color('ivory'))
     toggle_text_rect = toggle_text.get_rect(center=toggle_button_rect.center)
     WINDOW.blit(toggle_text, toggle_text_rect)
 
-
-def drawTextMessage(WINDOW, TEXT, POSITION, TEXT_COLOR):
-    font = pygame.font.SysFont("Arial", 17, True, False)
+def drawTextMessage(WINDOW, TEXT, POSITION, TEXT_COLOR, TEXT_SIZE=16):
+    font = pygame.font.SysFont("Comic Sans MS", TEXT_SIZE, bold=True)
     textObject = font.render(str(TEXT), 1, TEXT_COLOR)
     textLocation = pygame.Rect(POSITION[0], POSITION[1], WINDOW_WIDTH, WINDOW_HEIGHT)
     WINDOW.blit(textObject, textLocation)
 
-
 def drawUIStatus(WINDOW, GAME_STATE):
     if BLACK_AI == BLACK_MAN == WHITE_AI == WHITE_MAN == False:
         turn = 'Select AI/Human for each piece'
-        drawTextMessage(WINDOW, turn, [12, 525], pygame.Color('olivedrab4'))
+        drawTextMessage(WINDOW, turn, [12, 525], pygame.Color('teal'), TEXT_SIZE=16)
 
     elif GAME_STATE.checkMate or GAME_STATE.staleMate:
-        drawTextMessage(WINDOW, '', [80, 525], pygame.Color('white'))
+        drawTextMessage(WINDOW, '', [80, 525], pygame.Color('ivory'), TEXT_SIZE=16)
 
     elif (BLACK_AI or BLACK_MAN) and (WHITE_AI or WHITE_MAN) and not GAME_STARTED:
         turn = 'Click Play to Start!'
-        drawTextMessage(WINDOW, turn, [80, 525], pygame.Color('olivedrab4'))
+        drawTextMessage(WINDOW, turn, [80, 525], pygame.Color('teal'), TEXT_SIZE=16)
 
     elif (BLACK_AI or BLACK_MAN) and not GAME_STARTED:
         turn = "Select AI/Human for White Pieces"
-        drawTextMessage(WINDOW, turn, [12, 525], pygame.Color('olivedrab4'))
+        drawTextMessage(WINDOW, turn, [12, 525], pygame.Color('teal'), TEXT_SIZE=16)
 
     elif (WHITE_AI or WHITE_MAN) and not GAME_STARTED:
         turn = "Select AI/Human for Black Pieces"
-        drawTextMessage(WINDOW, turn, [12, 525], pygame.Color('olivedrab4'))
+        drawTextMessage(WINDOW, turn, [12, 525], pygame.Color('teal'), TEXT_SIZE=16)
 
     elif GAME_STARTED:
         turn = "Black's Turn..." if not GAME_STATE.whiteToMove else "White's Turn..."
-        drawTextMessage(WINDOW, turn, [100, 525], pygame.Color('olivedrab4'))
+        drawTextMessage(WINDOW, turn, [100, 525], pygame.Color('teal'), TEXT_SIZE=16)
 
 
 # Main function to run the game loop
