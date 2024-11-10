@@ -2,7 +2,7 @@ import sys
 import pygame
 from pygame.locals import *
 
-#import ai
+import ai
 import engine
 
 pygame.init()
@@ -61,7 +61,7 @@ GAME_STARTED = False
 def loadSoundEffects():
 
     effects = {}
-    move_piece = pygame.mixer.Sound('./audios/move_Pieces.mp3')
+    move_piece = pygame.mixer.Sound('./audios/move_Piece.mp3')
     undo_move = pygame.mixer.Sound('./audios/undo_moves.wav')
     checkmate = pygame.mixer.Sound('./audios/checkmate_sound.wav')
     effects['move'] = move_piece
@@ -192,16 +192,76 @@ def drawPieces(WINDOW, Board):
                 WINDOW.blit(IMAGES[piece], pygame.Rect(
                     row * SQ_SIZE, col * SQ_SIZE, SQ_SIZE, SQ_SIZE))
 
+#
+# def drawButtons(WINDOW, GAME_STATE):
+#     play_button_rect = ''
+#     restart_button_rect = ''
+#
+#     # ==> Show Text (Opponent)
+#     drawTextMessage(WINDOW, "Black", [10, 392], pygame.Color('darkmagenta'))
+#     drawTextMessage(WINDOW, "White", [10, 442], pygame.Color('darkmagenta'))
+#     drawTextMessage(WINDOW, "MoveCount", [10, 490], pygame.Color('darkmagenta'))
+#     drawTextMessage(WINDOW, MOVE_COUNT, [120, 490], pygame.Color('red'))
+#     drawUIStatus(WINDOW, GAME_STATE)
+#
+#     # ==> Restart Button
+#     icon_image = pygame.image.load('./icons/re2.png')
+#     restart_button_rect = pygame.Rect(
+#         RESTART_BUTTON_POS[0], RESTART_BUTTON_POS[1], BUTTON_WIDTH, BUTTON_HEIGHT
+#     )
+#     pygame.draw.rect(
+#         WINDOW, RESTART_BUTTON_COLOR, restart_button_rect, border_radius=BUTTON_RADIUS
+#     )
+#     icon_rect = icon_image.get_rect(
+#         center=(restart_button_rect.centerx, restart_button_rect.centery)
+#     )
+#     WINDOW.blit(icon_image, icon_rect)
+#
+#     # ==> Play Button
+#     icon_image = pygame.image.load('./icons/play2.png')
+#     play_button_rect = pygame.Rect(
+#         PLAY_BUTTON_POS[0], PLAY_BUTTON_POS[1], BUTTON_WIDTH, BUTTON_HEIGHT
+#     )
+#     pygame.draw.rect(
+#         WINDOW, PLAY_BUTTON_COLOR, play_button_rect, border_radius=BUTTON_RADIUS
+#     )
+#     icon_rect = icon_image.get_rect(
+#         center=(play_button_rect.centerx, play_button_rect.centery)
+#     )
+#     WINDOW.blit(icon_image, icon_rect)
+#
+#     # ==> Toggle Button (Black Selection)
+#     black_ai = pygame.Color('blue') if BLACK_AI else pygame.Color('gainsboro')
+#     black_man = pygame.Color('blue') if BLACK_MAN else pygame.Color('gainsboro')
+#     makeButton(
+#         WINDOW, TOGGLE_BUTTON_2_POS, BUTTON_WIDTH, BUTTON_HEIGHT,
+#         TEXT='AI', BTN_COLOR=black_ai, BTN_RADIUS=15
+#     )
+#     makeButton(
+#         WINDOW, TOGGLE_BUTTON_1_POS, BUTTON_WIDTH + 50, BUTTON_HEIGHT,
+#         TEXT='HUMAN', BTN_COLOR=black_man, BTN_RADIUS=15
+#     )
+#
+#     # ==> Toggle Button (White Selection)
+#     white_ai = pygame.Color('blue') if WHITE_AI else pygame.Color('gainsboro')
+#     white_man = pygame.Color('blue') if WHITE_MAN else pygame.Color('gainsboro')
+#     makeButton(
+#         WINDOW, TOGGLE_BUTTON_4_POS, BUTTON_WIDTH, BUTTON_HEIGHT,
+#         TEXT='AI', BTN_COLOR=white_ai, BTN_RADIUS=15
+#     )
+#     makeButton(
+#         WINDOW, TOGGLE_BUTTON_3_POS, BUTTON_WIDTH + 50, BUTTON_HEIGHT,
+#         TEXT='HUMAN', BTN_COLOR=white_man, BTN_RADIUS=15
+#     )
 
 def drawButtons(WINDOW, GAME_STATE):
-    play_button_rect = ''
-    restart_button_rect = ''
+    mouse_x, mouse_y = pygame.mouse.get_pos()
 
     # ==> Show Text (Opponent)
-    drawTextMessage(WINDOW, "Black", [10, 392], pygame.Color('darkmagenta'))
-    drawTextMessage(WINDOW, "White", [10, 442], pygame.Color('darkmagenta'))
-    drawTextMessage(WINDOW, "MoveCount", [10, 490], pygame.Color('darkmagenta'))
-    drawTextMessage(WINDOW, MOVE_COUNT, [120, 490], pygame.Color('red'))
+    drawTextMessage(WINDOW, "Black", [10, 392], pygame.Color('darkslateblue'))
+    drawTextMessage(WINDOW, "White", [10, 442], pygame.Color('darkslateblue'))
+    drawTextMessage(WINDOW, "MoveCount", [10, 490], pygame.Color('darkslateblue'))
+    drawTextMessage(WINDOW, MOVE_COUNT, [120, 490], pygame.Color('crimson'))
     drawUIStatus(WINDOW, GAME_STATE)
 
     # ==> Restart Button
@@ -209,12 +269,11 @@ def drawButtons(WINDOW, GAME_STATE):
     restart_button_rect = pygame.Rect(
         RESTART_BUTTON_POS[0], RESTART_BUTTON_POS[1], BUTTON_WIDTH, BUTTON_HEIGHT
     )
-    pygame.draw.rect(
-        WINDOW, RESTART_BUTTON_COLOR, restart_button_rect, border_radius=BUTTON_RADIUS
-    )
-    icon_rect = icon_image.get_rect(
-        center=(restart_button_rect.centerx, restart_button_rect.centery)
-    )
+    if restart_button_rect.collidepoint(mouse_x, mouse_y):
+        zoomed_restart_button(WINDOW, restart_button_rect, pygame.Color('DodgerBlue'), BUTTON_RADIUS)
+    else:
+        zoomed_restart_button(WINDOW, restart_button_rect, RESTART_BUTTON_COLOR, BUTTON_RADIUS)
+    icon_rect = icon_image.get_rect(center=(restart_button_rect.centerx, restart_button_rect.centery))
     WINDOW.blit(icon_image, icon_rect)
 
     # ==> Play Button
@@ -222,17 +281,16 @@ def drawButtons(WINDOW, GAME_STATE):
     play_button_rect = pygame.Rect(
         PLAY_BUTTON_POS[0], PLAY_BUTTON_POS[1], BUTTON_WIDTH, BUTTON_HEIGHT
     )
-    pygame.draw.rect(
-        WINDOW, PLAY_BUTTON_COLOR, play_button_rect, border_radius=BUTTON_RADIUS
-    )
-    icon_rect = icon_image.get_rect(
-        center=(play_button_rect.centerx, play_button_rect.centery)
-    )
+    if play_button_rect.collidepoint(mouse_x, mouse_y):
+        zoomed_play_button(WINDOW, play_button_rect, pygame.Color('DodgerBlue'), BUTTON_RADIUS)
+    else:
+        zoomed_play_button(WINDOW, play_button_rect, PLAY_BUTTON_COLOR, BUTTON_RADIUS)
+    icon_rect = icon_image.get_rect(center=(play_button_rect.centerx, play_button_rect.centery))
     WINDOW.blit(icon_image, icon_rect)
 
     # ==> Toggle Button (Black Selection)
-    black_ai = pygame.Color('blue') if BLACK_AI else pygame.Color('gainsboro')
-    black_man = pygame.Color('blue') if BLACK_MAN else pygame.Color('gainsboro')
+    black_ai = pygame.Color('midnightblue') if BLACK_AI else pygame.Color('lightgrey')
+    black_man = pygame.Color('midnightblue') if BLACK_MAN else pygame.Color('lightgrey')
     makeButton(
         WINDOW, TOGGLE_BUTTON_2_POS, BUTTON_WIDTH, BUTTON_HEIGHT,
         TEXT='AI', BTN_COLOR=black_ai, BTN_RADIUS=15
@@ -243,8 +301,8 @@ def drawButtons(WINDOW, GAME_STATE):
     )
 
     # ==> Toggle Button (White Selection)
-    white_ai = pygame.Color('blue') if WHITE_AI else pygame.Color('gainsboro')
-    white_man = pygame.Color('blue') if WHITE_MAN else pygame.Color('gainsboro')
+    white_ai = pygame.Color('midnightblue') if WHITE_AI else pygame.Color('lightgrey')
+    white_man = pygame.Color('midnightblue') if WHITE_MAN else pygame.Color('lightgrey')
     makeButton(
         WINDOW, TOGGLE_BUTTON_4_POS, BUTTON_WIDTH, BUTTON_HEIGHT,
         TEXT='AI', BTN_COLOR=white_ai, BTN_RADIUS=15
@@ -253,6 +311,54 @@ def drawButtons(WINDOW, GAME_STATE):
         WINDOW, TOGGLE_BUTTON_3_POS, BUTTON_WIDTH + 50, BUTTON_HEIGHT,
         TEXT='HUMAN', BTN_COLOR=white_man, BTN_RADIUS=15
     )
+
+def zoomed_play_button(WINDOW, rect, color, radius):
+    zoom_factor = 1.1  # Lightly zoom in by 10%
+    new_rect = pygame.Rect(
+        rect.left - (rect.width * (zoom_factor - 1) / 2),
+        rect.top - (rect.height * (zoom_factor - 1) / 2),
+        rect.width * zoom_factor,
+        rect.height * zoom_factor
+    )
+    pygame.draw.rect(WINDOW, color, new_rect, border_radius=radius)
+
+def zoomed_restart_button(WINDOW, rect, color, radius):
+    zoom_factor = 1.1  # Lightly zoom in by 10%
+    new_rect = pygame.Rect(
+        rect.left - (rect.width * (zoom_factor - 1) / 2),
+        rect.top - (rect.height * (zoom_factor - 1) / 2),
+        rect.width * zoom_factor,
+        rect.height * zoom_factor
+    )
+    pygame.draw.rect(WINDOW, color, new_rect, border_radius=radius)
+
+
+def gradient_play_button(WINDOW, rect, color1, color2, radius):
+    surface = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
+    for i in range(rect.height):
+        ratio = i / rect.height
+        color = (
+            int(color1.r + (color2.r - color1.r) * ratio),
+            int(color1.g + (color2.g - color1.g) * ratio),
+            int(color1.b + (color2.b - color1.b) * ratio)
+        )
+        pygame.draw.line(surface, color, (0, i), (rect.width, i))
+    WINDOW.blit(surface, rect.topleft)
+    pygame.draw.rect(WINDOW, color1, rect, border_radius=radius)
+
+
+def gradient_restart_button(WINDOW, rect, color1, color2, radius):
+    surface = pygame.Surface((rect.width, rect.height), pygame.SRCALPHA)
+    for i in range(rect.height):
+        ratio = i / rect.height
+        color = (
+            int(color1.r + (color2.r - color1.r) * ratio),
+            int(color1.g + (color2.g - color1.g) * ratio),
+            int(color1.b + (color2.b - color1.b) * ratio)
+        )
+        pygame.draw.line(surface, color, (0, i), (rect.width, i))
+    WINDOW.blit(surface, rect.topleft)
+    pygame.draw.rect(WINDOW, color1, rect, border_radius=radius)
 
 
 def animateMove(move, WINDOW, board, clock):
