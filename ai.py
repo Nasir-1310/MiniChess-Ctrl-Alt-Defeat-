@@ -1,163 +1,129 @@
-import random;
-pieceValue={"K":0,"Q":10,"R":4,"B":4,"N":7,"P":1};
+import random
 
-knightGoodPositionsOnBoard=[
-                    [1, 1, 1, 1, 1],
-                    [1, 2, 2, 2, 1],
-                    [1, 2, 3, 2, 1],
-                    [1, 2, 3, 2, 1],
-                    [1, 2, 2, 2, 1],
-                    [1, 1, 1, 1, 1]
-                    ];
+pieceValue = {"K": 0, "Q": 10, "R": 4, "B": 4, "N": 7, "P": 1}   #strength value fix korlam
+# piece gulor good position define korlam jeta amke heuristic e help korbe
+knightGoodPositions = [[1, 1, 1, 1, 1],
+                       [1, 2, 2, 2, 1],
+                       [1, 2, 3, 2, 1],
+                       [1, 2, 3, 2, 1],
+                       [1, 2, 2, 2, 1],
+                       [1, 1, 1, 1, 1]]
 
-bishopGoodPositionsOnBoard=[
-                    [3, 2, 1, 2, 3],
-                    [3, 3, 2, 3, 3],
-                    [2, 3, 3, 3, 2],
-                    [2, 3, 3, 3, 2],
-                    [3, 3, 2, 3, 3],
-                    [3, 2, 1, 2, 3]
-                    ];
-queenGoodPositionsOnBoard=[
-                    [1, 2, 1, 2, 1],
-                    [1, 2, 2, 2, 1],
-                    [1, 2, 3, 2, 1],
-                    [1, 2, 3, 2, 1],
-                    [1, 2, 2, 2, 1],
-                    [1, 2, 1, 2, 1]
-                    ];
-rookGoodPositionsOnBoard=[
-                    [3, 3, 3, 3, 3],
-                    [3, 2, 2, 2, 3],
-                    [1, 2, 1, 2, 1],
-                    [1, 2, 1, 2, 1],
-                    [3, 2, 2, 2, 3],
-                    [3, 3, 3, 3, 3]
-                    ];
-whitePawnGoodPositionsOnBoard=[
-                        [5, 5, 5, 5, 5],
-                        [4, 4, 4, 4, 4],
-                        [3, 3, 3, 3, 3],
-                        [2, 2, 2, 2, 2],
-                        [1, 1, 1, 1, 1],
-                        [0, 0, 0, 0, 0]
-                        ];
-blackPawnGoodPositionsOnBoard=[
-                        [0, 0, 0, 0, 0],
-                        [1, 1, 1, 1, 1],
-                        [1, 2, 2, 2, 1],
-                        [2, 3, 3, 3, 2],
-                        [3, 4, 4, 4, 3],
-                        [5, 5, 5, 5, 5]
-                        ];
+bishopGoodPositions = [[3, 2, 1, 2, 3],
+                       [3, 3, 2, 3, 3],
+                       [2, 3, 3, 3, 2],
+                       [2, 3, 3, 3, 2],
+                       [3, 3, 2, 3, 3],
+                       [3, 2, 1, 2, 3]]
 
-piecePositionalScores={
-    "N":knightGoodPositionsOnBoard,
-    "B":bishopGoodPositionsOnBoard,
-    "Q":queenGoodPositionsOnBoard,
-    "R":rookGoodPositionsOnBoard,
-    "w_P":whitePawnGoodPositionsOnBoard,
-    "b_P":blackPawnGoodPositionsOnBoard
-}
+queenGoodPositions = [[1, 2, 1, 2, 1],
+                      [1, 2, 2, 2, 1],
+                      [1, 2, 3, 2, 1],
+                      [1, 2, 3, 2, 1],
+                      [1, 2, 2, 2, 1],
+                      [1, 2, 1, 2, 1]]
 
-CHECKMATE=float('inf');
-STALEMATE=0;
-DEPTH=0;
+rookGoodPositions = [[3, 3, 3, 3, 3],
+                     [3, 2, 2, 2, 3],
+                     [1, 2, 1, 2, 1],
+                     [1, 2, 1, 2, 1],
+                     [3, 2, 2, 2, 3],
+                     [3, 3, 3, 3, 3]]
 
-def findRandomMove(validMoves):
-    return validMoves[random.randint(0,len(validMoves)-1)];
+whitePawnGoodPositions = [[5, 5, 5, 5, 5],
+                          [4, 4, 4, 4, 4],
+                          [3, 3, 3, 3, 3],
+                          [2, 2, 2, 2, 2],
+                          [1, 1, 1, 1, 1],
+                          [0, 0, 0, 0, 0]]
 
-def findBestMove(gamestate, validMoves):
+blackPawnGoodPositions = [[0, 0, 0, 0, 0],
+                          [1, 1, 1, 1, 1],
+                          [1, 2, 2, 2, 1],
+                          [2, 3, 3, 3, 2],
+                          [3, 4, 4, 4, 3],
+                          [5, 5, 5, 5, 5],]
+
+
+piecePositionalScores = {"N": knightGoodPositions, "B": bishopGoodPositions, "Q": queenGoodPositions,
+                         "R":  rookGoodPositions, "w_P": whitePawnGoodPositions, "b_P": blackPawnGoodPositions}
+
+
+CHECKMATE = float('inf')
+STALEMATE = 0
+DEPTH = 4  #depth barale hoito efficient hobe but khela slow hobe
+
+
+def findRandomMove(validMoves):   # age move gulo elomelo kori
+    return validMoves[random.randint(0, len(validMoves)-1)]
+
+
+def findBestMove(gamestate, validMoves): #best move khuje pabe actually minmax algo er maddhobe
     global nextMove, counter
-    nextMove = None  #it will store the best move found by Minimax.
-    
-    # Shuffle the order of valid moves to add variety to the AI's choices.
+    nextMove = None
     random.shuffle(validMoves)
-    #count the total moves evaluated.
     counter = 0
-
-    MinMaxWithPruning(gamestate, validMoves, DEPTH, -CHECKMATE, CHECKMATE, 1 if gamestate.whiteToMove else -1)
-    
-    # Print the total number of moves evaluated at the given depth 
+    MinMaxWithPruning(gamestate, validMoves, DEPTH, -CHECKMATE,
+                      CHECKMATE, 1 if gamestate.whiteToMove else -1)
     print(f"{counter} possible moves in depth {DEPTH}")
-    
-    # Return the best move found by the search
     return nextMove
 
 
-def MinMaxWithPruning(gamestate, validMoves, depth, alpha, beta, turnMultiplier):
+def MinMaxWithPruning(gamestate, validMoves, depth, alpha, beta, turnMultiplier):   # for white turnMultiplier +1
+                                                                                     # for balck turnMultiplier -1
     global nextMove, counter
-    counter += 1 
-
-    # Base case: If we've reached the maximum search depth, return the board score.
+    counter += 1
     if depth == 0:
-        # Score is adjusted by turnMultiplier to reflect the current player's perspective.
         return turnMultiplier * scoreBoard(gamestate)
 
     maxScore = -CHECKMATE
-
     for move in validMoves:
-        gamestate.makeMove(move) 
-        nextMoves = gamestate.getValidMoves()  # Generate the next set of valid moves for the opponent.
-
-        score = -MinMaxWithPruning(gamestate, nextMoves, depth-1, -beta, -alpha, -turnMultiplier)
-
+        gamestate.makeMove(move)
+        nextMoves = gamestate.getValidMoves()
+        score = -MinMaxWithPruning(gamestate, nextMoves,
+                                   depth-1, -beta, -alpha, -turnMultiplier)
         if score > maxScore:
-            maxScore = score  
-
+            maxScore = score
             if depth == DEPTH:
                 nextMove = move
+                # print(move, score)
 
-        gamestate.undoMove()  # Undo the move to restore the game state for the next iteration.
-
-        # Update alpha if we've found a new best score.
+        gamestate.undoMove()
         if maxScore > alpha:
             alpha = maxScore
-
-        # Alpha-beta pruning: If alpha exceeds beta, we can stop evaluating this branch.
-        if alpha >= beta:
+        if alpha >= beta:       # pruning
             break
 
     return maxScore
 
+# positive is good for white and negative is good for black
 
 
 def scoreBoard(gamestate):
-    # Check if the game state is in checkmate.
     if gamestate.checkMate:
         if gamestate.whiteToMove:
-            return -CHECKMATE  # Negative infinity to indicate a loss for white.
+            return -CHECKMATE
         else:
-            return CHECKMATE  # Positive infinity to indicate a win for white.
+            return CHECKMATE
 
     elif gamestate.staleMate:
-        return STALEMATE  # Return 0 for a drawn position.
+        return STALEMATE
 
-    score = 0  # Initialize score to 0, representing a neutral game state.
-
-    # Loop through each square on the board.
+    score = 0
     for row in range(len(gamestate.board)):
         for col in range(len(gamestate.board[row])):
             square = gamestate.board[row][col]
-
-            # Check if the square is occupied by a piece.
-            if square != "--":
-                # Initialize positional score for the piece. The king does not use a positional score.
+            if square != "--":  # scoring the pieces positionally
                 piecePositionalScore = 0
-                if square[-1] != "K":  
-                    # For pawns, use specific positional values for black and white.
-                    if square[-1] == "P":  
+                if square[-1] != "K":  # king doesn't need a positional score, it just needs safety
+                    if square[-1] == "P":  # different for black or white pawns
                         piecePositionalScore = piecePositionalScores[square][row][col]
-                    else:  # For other pieces, use the general positional score.
+                    else:  # for any other pieces regardless of the color
                         piecePositionalScore = piecePositionalScores[square[-1]][row][col]
 
-                # Calculate and add/subtract the piece’s value and positional score.
-                if square[0] == 'w':  # White piece
-                    # Add the piece’s base value and weighted positional score.
-                    score += pieceValue[square[-1]] + piecePositionalScore * 0.1
-                elif square[0] == 'b':  # Black piece
-                    # Subtract the piece’s base value and weighted positional score.
-                    score -= pieceValue[square[-1]] + piecePositionalScore * 0.1
+                if square[0] == 'w':
+                    score += pieceValue[square[-1]] + piecePositionalScore * .1  # 0.1 diye gun korar karon holo piece position score is less important eta bujhano
+                elif square[0] == 'b':
+                    score -= pieceValue[square[-1]] + piecePositionalScore * .1
 
-    return score  # Return the final evaluated score.
-
+    return score
