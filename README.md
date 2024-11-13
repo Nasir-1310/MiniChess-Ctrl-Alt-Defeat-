@@ -17,8 +17,11 @@ Move Counter: Keep track of the total move count.
 
 How to Run :
 git clone https://github.com/Nasir-1310/MiniChess-Ctrl-Alt-Defeat-.git
+
 cd cd Mini_Chess
+
 python main.py
+
 
 
 
