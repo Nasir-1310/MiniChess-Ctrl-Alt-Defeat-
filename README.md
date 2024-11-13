@@ -16,7 +16,9 @@ Move Counter: Keep track of the total move count.
 4. Endgame Conditions: Detects checkmate or stalemate when no valid moves are available.  
 
 How to Run :
-
+git clone https://github.com/Nasir-1310/MiniChess-Ctrl-Alt-Defeat-.git
+cd cd Mini_Chess
+python main.py
 
 
 
